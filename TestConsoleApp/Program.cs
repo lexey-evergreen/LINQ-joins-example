@@ -43,11 +43,12 @@ namespace TestConsoleApp
                 entry => entry.Name,
                 manifest => manifest.FileName,
                 (entry, manifest) => { if (manifest.SingleOrDefault() == null) { return entry; } else { return null; } })
-                .Where(_ => _ != null);
+                .Where(_ => _ != null)
+                .Select(zipFileEntry => zipFileEntry.Name);
 
-            foreach (var metadataAndManifest in doesntExistInManifest)
+            foreach (var zipFile in doesntExistInManifest)
             {
-                Console.WriteLine($"{metadataAndManifest.Name} is a ZipFileEntry that doesn't exist in manifest.");
+                Console.WriteLine($"{zipFile} is a ZipFileEntry that doesn't exist in manifest.");
             }
 
             // Left outer join 2
@@ -58,11 +59,20 @@ namespace TestConsoleApp
                 manifest => manifest.FileName,
                 entry => entry.Name,
                 (manifest, entry) => { if (entry.SingleOrDefault() == null) { return manifest; } else { return null; } })
-                .Where(_ => _ != null);
+                .Where(_ => _ != null)
+                .Select(metaDataFile => metaDataFile.FileName);
 
-            foreach (var metadataAndManifest in doesntExistInZipFile)
+            foreach (var manifestEntry in doesntExistInZipFile)
             {
-                Console.WriteLine($"{metadataAndManifest.FileName} is a MetadataFile that doesn't exist in entry.");
+                Console.WriteLine($"{manifestEntry} is a MetadataFile that doesn't exist in entry.");
+            }
+
+            // Union
+            var doesntExistInOne = Enumerable.Union(doesntExistInManifest, doesntExistInZipFile);
+
+            foreach (var fileThatIsMissingFromOne in doesntExistInOne)
+            {
+                Console.WriteLine($"{fileThatIsMissingFromOne} is a file that's doesn't exist in one of: manifest or entry.");
             }
         }
     }
